@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pandas = "==3.0.1"
+python-dateutil = "==2.9.0.post0"
+six = "==1.17.0"
+tqdm = "==4.67.3"
+numpy = "*"
+pytest = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.14"
