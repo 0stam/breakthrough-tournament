@@ -1,8 +1,51 @@
 import pytest
 import numpy as np
 
-from src.state.state import check_win, str_to_numpy, validate_new_state
+from src.state.state import check_win, create_board, numpy_to_str, str_to_numpy, validate_new_state
 from src.state.exceptions import InvalidInputException
+
+
+@pytest.mark.parametrize(
+    "size_x,size_y,expected",
+    [
+        (
+            2, 5,
+            np.array([[66, 66, 95, 87, 87], [66, 66, 95, 87, 87]])
+        ),
+        (
+            8, 8,
+            np.array([[66, 66, 95, 95, 95, 95, 87, 87]] * 8)
+        )
+    ]
+)
+def test_create_board(size_x, size_y, expected):
+    board = create_board(size_x, size_y)
+
+    assert board.shape == expected.shape
+
+    print(board)
+
+    assert np.all(board == expected)
+
+
+@pytest.mark.parametrize(
+    "test_arr,expected",
+    [
+        (
+            np.array([[87, 87, 95, 95, 66, 66], [87, 87, 95, 95, 66, 66], [87, 87, 95, 95, 66, 66], [87, 87, 95, 95, 66, 66]]),
+            "B B B B B B B B _ _ _ _ _ _ _ _ W W W W W W W W",
+        ),
+        (
+            np.array([[66, 95, 95, 95, 95, 95, 95, 87], [95, 66, 95, 95, 95, 95, 95, 95], [95, 95, 95, 95, 66, 95, 95, 95],
+                      [95, 111, 95, 95, 95, 95, 95, 95], [95, 95, 66, 87, 87, 95, 95, 95], [95] * 8,
+                      [95, 95, 95, 95, 95, 95, 87, 95], [95, 95, 66, 95, 95, 95, 95, 95]]),
+            "W _ _ _ _ _ _ _ _ _ _ _ _ _ W _ _ _ _ _ _ _ _ _ _ _ B _ W _ _ _ _ _ _ _ W _ _ _ _ _ _ _ B _ _ B _ B _ o _ _ _ _ B _ _ _ _ _ _ _",
+        )
+    ]
+)
+def test_numpy_to_str(test_arr, expected):
+    assert numpy_to_str(test_arr) == expected
+
 
 @pytest.mark.parametrize(
     "test_text,size_x,size_y,expected",

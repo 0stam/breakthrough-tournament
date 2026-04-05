@@ -4,6 +4,20 @@ from src.state.exceptions import InvalidInputException
 from src.state.constants import FieldType
 
 
+def create_board(size_x: int, size_y: int) -> np.ndarray:
+    '''
+    Creates a board of given size with pawns in their initial positions.
+    '''
+    assert size_y >= 4, "Board size y must be at least 4"
+
+    board = np.full((size_x, size_y), FieldType.EMPTY, dtype="int32")
+
+    board[:, :2] = FieldType.FIRST_PLAYER
+    board[:, -2:] = FieldType.SECOND_PLAYER
+
+    return board
+
+
 def str_to_numpy(s: str, size_y: int, size_total: int) -> np.ndarray:
     s_processed = s.strip()[::2].encode("utf-32-le")  # Makes sure each char contains four bytes of little-endian data
     
@@ -15,9 +29,17 @@ def str_to_numpy(s: str, size_y: int, size_total: int) -> np.ndarray:
     return result
 
 
+def numpy_to_str(arr: np.ndarray) -> str:
+    assert arr.ndim == 2
+    assert arr.shape[0] > 0
+    assert arr.shape[1] > 0
+
+    return " ".join(map(lambda sub_arr: " ".join(map(chr, sub_arr)), arr[:, ::-1].T))
+
+
 def validate_new_state(prev_state: np.ndarray, new_state: np.ndarray, turn: int) -> bool:
     '''
-    Assuming that prev_state contains a valid board state, checks if new_state is valid
+    Assuming that prev_state contains a valid board state, checks if new_state is valid.
     '''
     assert prev_state.shape == new_state.shape
 
@@ -27,14 +49,17 @@ def validate_new_state(prev_state: np.ndarray, new_state: np.ndarray, turn: int)
 
     curr_player_pawn_code = FieldType.FIRST_PLAYER if turn % 2 == 0 else FieldType.SECOND_PLAYER
 
-    prev_indicator_x = -1
-    prev_indicator_y = -1
-    new_indicator_x = -1
-    new_indicator_y = -1
-    new_pawn_x = -1
-    new_pawn_y = -1
+    prev_indicator_x: int = -1
+    prev_indicator_y: int = -1
+    new_indicator_x: int = -1
+    new_indicator_y: int = -1
+    new_pawn_x: int = -1
+    new_pawn_y: int = -1
 
     for x, y in zip(changed_xs, changed_ys):
+        x = int(x)
+        y = int(y)
+
         if new_state[x, y] == FieldType.MOVE_INDICATOR:
             if new_indicator_x != -1:
                 return False
