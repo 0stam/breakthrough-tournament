@@ -6,3 +6,4 @@ from typing import NamedTuple
 class ProcessResult:
     lost: list[bool]
     output: list[str]
+    err_msg: list[str|None]

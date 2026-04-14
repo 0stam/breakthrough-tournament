@@ -9,6 +9,7 @@ from src.game.results.game_results import GameResults
 from src.game.results.process_result import ProcessResult
 from src.game.player_process import PlayerProcess
 from src.state.state import check_win, create_board, numpy_to_str, str_to_numpy, validate_new_state
+from src.state.exceptions import InvalidInputException
 
 
 class Game:
@@ -75,26 +76,35 @@ class Game:
 
                     return GameResults(
                         first_lost=current_player_idx != 0,
-                        second_lost=current_player_idx != 1
+                        second_lost=current_player_idx != 1,
+                        first_error_message=None,
+                        second_error_message=None
                     )
                 
                 self.turn += 1
         except PlayerLostException as e:
-            return GameResults(e.first, e.second)
-    
+            return GameResults(
+                first_lost=e.first,
+                second_lost=e.second,
+                first_error_message=e.first_error_message,
+                second_error_message=e.second_error_message
+            )
+
     def _read_preferred_format(self) -> None:
         result = self._collect_first_line_from_both(timeout=self.t_init)
 
-        formats: list[int] = [0, 0]
+        print(f"Preferred formats: {result.output}", file=sys.stderr)
+
+        formats: list[int] = [-1, -1]
 
         for i in range(2):
-            format = -1
             try:
                 formats[i] = int(result.output[i])
             except ValueError:
                 pass
 
             result.lost[i] |= formats[i] not in InputType.__members__.values()
+            result.err_msg[i] = f"Invalid input format: {result.output[i]}" if result.lost[i] else None
 
         self._check_if_lost(result)
 
@@ -113,12 +123,19 @@ class Game:
 
         result = self._collect_last_line_from_single_player(player_idx=player_idx, timeout=self.t_move)
 
+        print(f"Result: {result}", file=sys.stderr)
+
         try:
             new_state = str_to_numpy(result.output[player_idx], self.board_size_x, self.board_size_total)
-        except ValueError:
-            result.lost[player_idx] = True
 
-        result.lost[player_idx] |= not validate_new_state(self.board, new_state, self.turn)
+            validation_result = validate_new_state(self.board, new_state, self.turn)
+
+            if validation_result is not None:
+                result.lost[player_idx] = True
+                result.err_msg[player_idx] = validation_result
+        except InvalidInputException as e:
+            result.lost[player_idx] = True
+            result.err_msg[player_idx] = str(e)
 
         self._check_if_lost(result)
 
@@ -127,13 +144,15 @@ class Game:
     
     def _check_if_lost(self, result: ProcessResult) -> None:
         if any(result.lost):
-            raise PlayerLostException(result.lost[0], result.lost[1])
+            raise PlayerLostException(result.lost[0], result.lost[1], result.err_msg[0], result.err_msg[1])
 
     def _collect_first_line_from_both(self, timeout: float) -> ProcessResult:
         deadline = time.time() + timeout
 
         last_lines = {0: "", 1: ""}
         unfinished_lines = {0: "", 1: ""}
+
+        print(f"Starting at {time.time()}, deadline at {deadline}", file=sys.stderr)
 
         while True:
             time_left = deadline - time.time()
@@ -165,9 +184,16 @@ class Game:
             if all(line != "" for line in last_lines.values()):
                 break
         
+        print(f"Finished at {time.time()}, last lines: {last_lines}", file=sys.stderr)
+        
+        error_msg = "Timeout when waiting for players' line"
+
+        error_msgs = [error_msg if last_lines[i] == "" else None for i in range(2)]
+
         return ProcessResult(
             lost=[last_lines[0] == "", last_lines[1] == ""],
-            output=[last_lines[0], last_lines[1]]
+            output=[last_lines[0], last_lines[1]],
+            err_msg=error_msgs
         )
     
     def _collect_last_line_from_single_player(self, player_idx: int, timeout: float) -> ProcessResult:
@@ -217,7 +243,18 @@ class Game:
 
                         unfinished_line = in_data[endline_idx + 1:]
                 
+        lost = [False, False]
+        last_lines = ["", ""]
+        error_msgs: list[str|None] = [None, None]
+
+        last_lines[player_idx] = last_line
+
+        if last_line == "":
+            lost[player_idx] = True
+            error_msgs[player_idx] = "Timeout when waiting for player's line"
+
         return ProcessResult(
-            lost=[player_idx == 0 and last_line == "", player_idx == 1 and last_line == ""],
-            output=[last_line if player_idx == 0 else "", last_line if player_idx == 1 else ""]
+            lost=lost,
+            output=last_lines,
+            err_msg=error_msgs
         )

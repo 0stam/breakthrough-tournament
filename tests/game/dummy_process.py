@@ -1,12 +1,25 @@
+import argparse
+import time
 import numpy as np
 
 from src.state.state import numpy_to_str, str_to_numpy
 from src.state.constants import FieldType
 
 
-def dummy_process():
-    print("0", flush=True)
+def dummy_process(
+        override_init: str|None = None,
+        override_move: str|None = None,
+        init_wait: float = 0.0,
+        move_wait: float = 0.0
+    ):
+    if init_wait > 0:
+        time.sleep(init_wait)
 
+    if override_init is not None:
+        print(override_init, flush=True)
+    else:
+        print("0", flush=True)
+    
     params = input().strip().split()
 
     board_x = int(params[0])
@@ -18,8 +31,12 @@ def dummy_process():
 
     ally_pawn = FieldType.FIRST_PLAYER if player_id == 0 else FieldType.SECOND_PLAYER
     enemy_pawn = FieldType.SECOND_PLAYER if player_id == 0 else FieldType.FIRST_PLAYER
-
+    
     while True:
+
+        if move_wait > 0:
+            time.sleep(move_wait)
+
         board_str = input().strip()
         board = np.copy(str_to_numpy(board_str, board_x, board_size))
 
@@ -53,8 +70,23 @@ def dummy_process():
                 continue
             break
 
-        print(numpy_to_str(board), flush=True)
+        if override_move is not None:
+            print(override_move, flush=True)
+        else:
+            print(numpy_to_str(board), flush=True)
 
 
 if __name__ == "__main__":
-    dummy_process()
+    parser = argparse.ArgumentParser(description="Dummy process for testing Breakthrough game.")
+    parser.add_argument("--override-init", type=str, default=None, help="String to override the init output")
+    parser.add_argument("--override-move", type=str, default=None, help="String to override the move output")
+    parser.add_argument("--init-wait", type=float, default=0.0, help="Time to wait before sending init output")
+    parser.add_argument("--move-wait", type=float, default=0.0, help="Time to wait before sending move output")
+    args = parser.parse_args()
+
+    dummy_process(
+        override_init=args.override_init,
+        override_move=args.override_move,
+        init_wait=args.init_wait,
+        move_wait=args.move_wait
+    )

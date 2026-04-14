@@ -218,7 +218,10 @@ def test_validate_new_state_simple(size_x, size_y, prev_str, new_str, turn, expe
     prev_state = str_to_numpy(prev_str, size_y, size_x * size_y)
     new_state = str_to_numpy(new_str, size_y, size_x * size_y)
 
-    assert validate_new_state(prev_state, new_state, turn) == expected
+    if expected:
+        assert validate_new_state(prev_state, new_state, turn) is None
+    else:
+        assert validate_new_state(prev_state, new_state, turn) is not None
 
 
 @pytest.mark.parametrize(
