@@ -46,6 +46,24 @@ def test_create_board(size_x, size_y, expected):
 def test_numpy_to_str(test_arr, expected):
     assert numpy_to_str(test_arr) == expected
 
+@pytest.mark.parametrize(
+    "size_x,size_y",
+    [
+        (12, 4),
+        (8, 8),
+        (3, 11)
+    ]
+)
+def numpy_to_str_and_back_random(size_x, size_y):
+    for _ in range(10):
+        arr = np.random.randint(0, 256, (size_x, size_y), dtype="int32")
+
+        arr_str = numpy_to_str(arr)
+        arr_converted = str_to_numpy(arr_str, size_y, size_x * size_y)
+
+        assert arr.shape == arr_converted.shape
+        assert np.all(arr == arr_converted)
+
 
 @pytest.mark.parametrize(
     "test_text,size_x,size_y,expected",

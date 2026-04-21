@@ -141,6 +141,13 @@ def validate_single_pawn_movement(
     if prev_state[new_indicator_x, new_indicator_y] != curr_player_pawn_code:
         return "Wrong player moved (or move from empty field)"
     
+    # Check if move is in range
+    if abs(new_pawn_x - new_indicator_x) > 1:
+        return "Move out of range"
+    
+    if abs(new_pawn_y - new_indicator_y) > 1:
+        return "Move out of range"
+
     # Check if move in right direction
     if new_pawn_y - new_indicator_y != direction:
         return "Move in wrong direction"
@@ -150,10 +157,6 @@ def validate_single_pawn_movement(
         if prev_state[new_pawn_x, new_pawn_y] not in {FieldType.EMPTY, FieldType.MOVE_INDICATOR}:
             return "Moved on an occupied field"
         return None
-    
-    # Check for correct diagonal move
-    if abs(new_pawn_x - new_indicator_x) > 1:
-        return "Move out of range"
     
     if prev_state[new_pawn_x, new_pawn_y] not in {FieldType.EMPTY, FieldType.MOVE_INDICATOR, enemy_pawn_code}:
         return "Moved on their own pawn"
