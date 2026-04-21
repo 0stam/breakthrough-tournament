@@ -126,7 +126,7 @@ class Game:
         print(f"Result: {result}", file=sys.stderr)
 
         try:
-            new_state = str_to_numpy(result.output[player_idx], self.board_size_x, self.board_size_total)
+            new_state = str_to_numpy(result.output[player_idx], self.board_size_y, self.board_size_total)
 
             validation_result = validate_new_state(self.board, new_state, self.turn)
 
