@@ -226,8 +226,14 @@ class Game:
                 in_data = pipe.read(65536)  # Flush the entire pipe
 
                 if in_data.endswith("\n"):  # The last line is complete (should happen most of the time)
-                    last_line = unfinished_line + in_data[:-1]
-                    unfinished_line = ""
+                    prev_newline_idx = in_data[:-1].rfind("\n")
+
+                    if prev_newline_idx == -1:  # There is only one line, we take it
+                        last_line = unfinished_line + in_data[:-1]
+                        unfinished_line = ""
+                    else:  # There are multiple lines, we take the last one
+                        last_line = in_data[prev_newline_idx + 1:-1]
+                        unfinished_line = ""
                 else:  # The last line is not complete
                     endline_idx = in_data.rfind("\n")
 
