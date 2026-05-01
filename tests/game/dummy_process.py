@@ -9,14 +9,16 @@ from src.state.constants import FieldType
 def dummy_process(
         override_init: str|None = None,
         override_move: str|None = None,
+        override_non_final_lines: str|None = None,
         init_wait: float = 0.0,
-        move_wait: float = 0.0
+        move_wait: float = 0.0,
+        n_lines_per_move: int = 1,
     ):
     if init_wait > 0:
         time.sleep(init_wait)
 
     if override_init is not None:
-        print(override_init, flush=True)
+        print(override_init, flush=True, end="")
     else:
         print("0", flush=True)
     
@@ -38,7 +40,7 @@ def dummy_process(
             time.sleep(move_wait)
 
         board_str = input().strip()
-        board = np.copy(str_to_numpy(board_str, board_x, board_size))
+        board = np.copy(str_to_numpy(board_str, board_y, board_size))
 
         # --- Dummy move: move the first pawn in the direction of the opponent ---
         board[board == FieldType.MOVE_INDICATOR] = FieldType.EMPTY  # Clear move indicators from previous turn
@@ -70,8 +72,14 @@ def dummy_process(
                 continue
             break
 
+        for _ in range(n_lines_per_move - 1):
+            if override_non_final_lines is not None:
+                print(override_non_final_lines, end="")
+            else:
+                print(numpy_to_str(board), flush=True)
+
         if override_move is not None:
-            print(override_move, flush=True)
+            print(override_move, flush=True, end="")
         else:
             print(numpy_to_str(board), flush=True)
 
@@ -80,13 +88,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Dummy process for testing Breakthrough game.")
     parser.add_argument("--override-init", type=str, default=None, help="String to override the init output")
     parser.add_argument("--override-move", type=str, default=None, help="String to override the move output")
+    parser.add_argument("--override-non-final-lines", type=str, default=None, help="When printing multiple lines, string to override the non-final ones")
     parser.add_argument("--init-wait", type=float, default=0.0, help="Time to wait before sending init output")
     parser.add_argument("--move-wait", type=float, default=0.0, help="Time to wait before sending move output")
+    parser.add_argument("--n-lines-per-move", type=int, default=1, help="Number of lines to output per move")
     args = parser.parse_args()
 
     dummy_process(
         override_init=args.override_init,
         override_move=args.override_move,
         init_wait=args.init_wait,
-        move_wait=args.move_wait
+        move_wait=args.move_wait,
+        n_lines_per_move=args.n_lines_per_move
     )
