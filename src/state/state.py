@@ -29,12 +29,54 @@ def str_to_numpy(s: str, size_y: int, size_total: int) -> np.ndarray:
     return result
 
 
+def str_to_move_coordinates(s: str) -> tuple[tuple[int, int], tuple[int, int]]:
+    parts = s.strip().split()
+
+    if len(parts) != 4:
+        raise InvalidInputException(f"Expected four values separated by space, got: {s}")
+    
+    try:
+        x1 = int(parts[0])
+        y1 = int(parts[1])
+        x2 = int(parts[2])
+        y2 = int(parts[3])
+    except ValueError:
+        raise InvalidInputException(f"Can't parse values to integers: {s}")
+    
+    return (x1, y1), (x2, y2)
+
+
 def numpy_to_str(arr: np.ndarray) -> str:
     assert arr.ndim == 2
     assert arr.shape[0] > 0
     assert arr.shape[1] > 0
 
     return " ".join(map(lambda sub_arr: " ".join(map(chr, sub_arr)), arr[:, ::-1].T))
+
+
+def apply_move_coordinates(prev_state: np.ndarray, move_from: tuple[int, int], move_to: tuple[int, int]) -> None:
+    '''
+    Modifies the state in place by moving whatever is at move_from to move_to.
+    
+    Assumes that the prev_state is correct.
+
+    Only validates if the coordinates are in bounds.
+    '''
+
+    for i in range(2):
+        if not (0 <= move_from[i] < prev_state.shape[i]):
+            raise InvalidInputException(f"Move from coordinates out of bounds: {move_from}, board shape: {prev_state.shape}")
+        
+        if not (0 <= move_to[i] < prev_state.shape[i]):
+            raise InvalidInputException(f"Move to coordinates out of bounds: {move_to}, board shape: {prev_state.shape}")
+    
+    # Clear old move indicator
+    prev_state[prev_state == FieldType.MOVE_INDICATOR] = FieldType.EMPTY
+
+    # Move whatever is at the selected location
+    moved_pawn = prev_state[move_from]
+    prev_state[move_from] = FieldType.MOVE_INDICATOR
+    prev_state[move_to] = moved_pawn
 
 
 def validate_new_state(prev_state: np.ndarray, new_state: np.ndarray, turn: int) -> None|str:

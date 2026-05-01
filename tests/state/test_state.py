@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from src.state.state import check_win, create_board, numpy_to_str, str_to_numpy, validate_new_state
+from src.state.state import apply_move_coordinates, check_win, create_board, numpy_to_str, str_to_move_coordinates, str_to_numpy, validate_new_state
 from src.state.exceptions import InvalidInputException
 
 
@@ -128,6 +128,89 @@ def test_str_to_numpy_invalid(test_text, size_x, size_y):
         str_to_numpy(test_text, size_y, size_x * size_y)
 
 
+@pytest.mark.parametrize(
+    "test_text,expected_from,expected_to",
+    [
+        (
+            "3 4 5 6",
+            (3, 4),
+            (5, 6)
+        ),
+        (
+            "0 0 777 7",
+            (0, 0),
+            (777, 7)
+        ),
+        (
+            "2 000 2 6",
+            (2, 0),
+            (2, 6)
+        )
+    ]
+)
+def test_str_to_coordinates(test_text, expected_from, expected_to):
+    result_from, result_to = str_to_move_coordinates(test_text)
+
+    assert result_from == expected_from
+    assert result_to == expected_to
+
+
+@pytest.mark.parametrize(
+    "test_text",
+    [
+        ("as;ldfkj"),
+        ("11 0 8"),
+        (""),
+        ("\n\n\n"),
+        ("11 a 33 0")
+    ]
+)
+def test_str_to_coordinates_invalid(test_text):
+    with pytest.raises(InvalidInputException):
+        str_to_move_coordinates(test_text)
+
+
+@pytest.mark.parametrize(
+    "size_x,size_y,prev_str,expected_str,move_from,move_to",
+    [
+        (
+            3, 5,
+            "W W W W W W _ _ _ B B B B B B",
+            "W W W W W W _ _ B B B o B B B",
+            (2, 1), (2, 2)
+        ),
+        (
+            5, 3,
+            "_ _ _ _ _ _ _ _ B W _ _ _ o _",
+            "_ _ _ _ _ _ _ _ B o _ _ _ W _",
+            (4, 1), (3, 0)
+        ),
+    ]
+)
+def test_apply_move_coordinates(size_x, size_y, prev_str, expected_str, move_from, move_to):
+    state = str_to_numpy(prev_str, size_y, size_x * size_y).copy()
+    expected_state = str_to_numpy(expected_str, size_y, size_x * size_y)
+
+    apply_move_coordinates(state, move_from, move_to)
+
+    assert state.shape == expected_state.shape
+    assert np.all(state == expected_state)
+
+
+@pytest.mark.parametrize(
+    "size_x,size_y,prev_str,move_from,move_to",
+    [
+        (3, 5, "W W W W W W _ _ _ B B B B B B", (-1, 1), (2, 2)),  # Negative
+        (6, 7, " ".join("_" * 42), (2, 1), (6, 2)),  # To out of bounds
+        (3, 4, " ".join("_" * 12), (2, 4), (2, 4)),  # From out of bounds
+    ]
+)
+def test_apply_move_coordinates_invalid(size_x, size_y, prev_str, move_from, move_to):
+    state = str_to_numpy(prev_str, size_y, size_x * size_y).copy()
+
+    with pytest.raises(InvalidInputException):
+        apply_move_coordinates(state, move_from, move_to)
+    
 
 @pytest.mark.parametrize(
     "size_x,size_y,prev_str,new_str,turn,expected",
