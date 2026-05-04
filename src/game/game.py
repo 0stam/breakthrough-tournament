@@ -3,12 +3,12 @@ import selectors
 import sys
 import time
 
-from src.game.constants import InputType
+from src.game.constants import MoveFormat
 from src.game.exceptions import PlayerLostException
 from src.game.results.game_results import GameResults
 from src.game.results.process_result import ProcessResult
 from src.game.player_process import PlayerProcess
-from src.state.state import check_win, create_board, numpy_to_str, str_to_numpy, validate_new_state
+from src.state.state import apply_move_coordinates, check_win, create_board, numpy_to_str, state_to_move_coordinates, str_to_move_coordinates, str_to_numpy, validate_new_state
 from src.state.exceptions import InvalidInputException
 
 
@@ -36,6 +36,7 @@ class Game:
 
         self.turn: int = 0
         self.board: np.ndarray = None  # type: ignore
+        self.last_move_coordnates: tuple[tuple[int, int], tuple[int, int]] = None  # type: ignore
     
     def run(self) -> GameResults:
         board = create_board(self.board_size_x, self.board_size_y)
@@ -95,21 +96,27 @@ class Game:
 
         print(f"Preferred formats: {result.output}", file=sys.stderr)
 
-        formats: list[int] = [-1, -1]
+        input_formats: list[int] = [-1, -1]
+        output_formats: list[int] = [-1, -1]
 
         for i in range(2):
             try:
-                formats[i] = int(result.output[i])
+                in_str, out_str = result.output[i].strip().split()
+                input_formats[i] = int(in_str)
+                output_formats[i] = int(out_str)
             except ValueError:
                 pass
 
-            result.lost[i] |= formats[i] not in InputType.__members__.values()
+            result.lost[i] |= input_formats[i] not in MoveFormat.__members__.values()
+            result.lost[i] |= output_formats[i] not in MoveFormat.__members__.values()
+
             result.err_msg[i] = f"Invalid input format: {result.output[i]}" if result.lost[i] else None
 
         self._check_if_lost(result)
 
         for i in range(2):
-            self.processes[i].input_type = InputType(formats[i])
+            self.processes[i].input_type = MoveFormat(input_formats[i])
+            self.processes[i].output_type = MoveFormat(output_formats[i])
 
     def _perform_move(self) -> None:
         player_idx = self.turn % 2
@@ -119,14 +126,29 @@ class Game:
         if self.processes[player_idx].stdout not in self.selector.get_map():
             self.selector.register(self.processes[player_idx].stdout, selectors.EVENT_READ, data=player_idx)
         
-        self.processes[player_idx].send_input(f"{numpy_to_str(self.board)}\n")
+        if self.processes[player_idx].input_type == MoveFormat.FULL_BOARD or self.turn < 2:  # First move for BOTH players
+            input_str = f"{numpy_to_str(self.board)}\n"
+        elif self.processes[player_idx].input_type == MoveFormat.MOVE_ONLY:
+            input_str = f"{self.get_formatted_last_move_coordinates()}\n"
+        else:
+            raise ValueError(f"Unknown input type: {self.processes[player_idx].input_type}")
+
+        self.processes[player_idx].send_input(input_str)
 
         result = self._collect_last_line_from_single_player(player_idx=player_idx, timeout=self.t_move)
 
         print(f"Result: {result}", file=sys.stderr)
 
         try:
-            new_state = str_to_numpy(result.output[player_idx], self.board_size_y, self.board_size_total)
+            if self.processes[player_idx].output_type == MoveFormat.FULL_BOARD:
+                new_state = str_to_numpy(result.output[player_idx], self.board_size_y, self.board_size_total)
+            elif self.processes[player_idx].output_type == MoveFormat.MOVE_ONLY:
+                new_state = self.board.copy()
+                move_from, move_to = str_to_move_coordinates(result.output[player_idx])
+                apply_move_coordinates(new_state, move_from, move_to)
+            else:
+                raise ValueError(f"Unknown output type: {self.processes[player_idx].output_type}")
+
 
             validation_result = validate_new_state(self.board, new_state, self.turn)
 
@@ -139,8 +161,8 @@ class Game:
 
         self._check_if_lost(result)
 
+        self.last_move_coordnates = state_to_move_coordinates(self.board, new_state)
         self.board = new_state
-
     
     def _check_if_lost(self, result: ProcessResult) -> None:
         if any(result.lost):
@@ -248,7 +270,7 @@ class Game:
                             last_line = in_data[prev_newline_idx + 1:endline_idx]
 
                         unfinished_line = in_data[endline_idx + 1:]
-                
+        
         lost = [False, False]
         last_lines = ["", ""]
         error_msgs: list[str|None] = [None, None]
@@ -264,3 +286,8 @@ class Game:
             output=last_lines,
             err_msg=error_msgs
         )
+    
+    def get_formatted_last_move_coordinates(self) -> str:
+        move_from, move_to = self.last_move_coordnates
+
+        return f"{move_from[0]} {move_from[1]} {move_to[0]} {move_to[1]}"

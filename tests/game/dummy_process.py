@@ -13,6 +13,8 @@ def dummy_process(
         init_wait: float = 0.0,
         move_wait: float = 0.0,
         n_lines_per_move: int = 1,
+        input_format: int = 0,
+        output_format: int = 1,
     ):
     if init_wait > 0:
         time.sleep(init_wait)
@@ -20,7 +22,7 @@ def dummy_process(
     if override_init is not None:
         print(override_init, flush=True, end="")
     else:
-        print("0", flush=True)
+        print(f"{input_format} {output_format}", flush=True)
     
     params = input().strip().split()
 
@@ -34,13 +36,24 @@ def dummy_process(
     ally_pawn = FieldType.FIRST_PLAYER if player_id == 0 else FieldType.SECOND_PLAYER
     enemy_pawn = FieldType.SECOND_PLAYER if player_id == 0 else FieldType.FIRST_PLAYER
     
-    while True:
+    first_turn = True
 
+    board = np.zeros((board_x, board_y), dtype=int)
+
+    while True:
         if move_wait > 0:
             time.sleep(move_wait)
 
-        board_str = input().strip()
-        board = np.copy(str_to_numpy(board_str, board_y, board_size))
+        if input_format == 0 or first_turn:
+            board_str = input().strip()
+            board = np.copy(str_to_numpy(board_str, board_y, board_size))
+        else:
+            move_str = input().strip()
+            move_from_x, move_from_y, move_to_x, move_to_y = map(int, move_str.split())
+            board[move_to_x, move_to_y] = board[move_from_x, move_from_y]
+            board[move_from_x, move_from_y] = FieldType.EMPTY
+
+        first_turn = False
 
         # --- Dummy move: move the first pawn in the direction of the opponent ---
         board[board == FieldType.MOVE_INDICATOR] = FieldType.EMPTY  # Clear move indicators from previous turn
@@ -64,6 +77,11 @@ def dummy_process(
                         board[new_x, new_y] = ally_pawn
                         board[x, y] = FieldType.MOVE_INDICATOR
 
+                        if output_format == 0:
+                            move_str = numpy_to_str(board)
+                        else:
+                            move_str = f"{x} {y} {new_x} {new_y}"
+    
                         break
                     else:
                         continue
@@ -71,17 +89,19 @@ def dummy_process(
             else:
                 continue
             break
+        else:
+            raise RuntimeError("No move found, but there should always be one")
 
         for _ in range(n_lines_per_move - 1):
             if override_non_final_lines is not None:
                 print(override_non_final_lines, end="")
             else:
-                print(numpy_to_str(board), flush=True)
+                print(move_str, flush=True)
 
         if override_move is not None:
             print(override_move, flush=True, end="")
         else:
-            print(numpy_to_str(board), flush=True)
+            print(move_str, flush=True)
 
 
 if __name__ == "__main__":
@@ -92,6 +112,8 @@ if __name__ == "__main__":
     parser.add_argument("--init-wait", type=float, default=0.0, help="Time to wait before sending init output")
     parser.add_argument("--move-wait", type=float, default=0.0, help="Time to wait before sending move output")
     parser.add_argument("--n-lines-per-move", type=int, default=1, help="Number of lines to output per move")
+    parser.add_argument("--input-format", type=int, default=1, help="Input format to use (0 for full board, 1 for move only)")
+    parser.add_argument("--output-format", type=int, default=1, help="Output format to use (0 for full board, 1 for move only)")
     args = parser.parse_args()
 
     dummy_process(
@@ -99,5 +121,7 @@ if __name__ == "__main__":
         override_move=args.override_move,
         init_wait=args.init_wait,
         move_wait=args.move_wait,
-        n_lines_per_move=args.n_lines_per_move
+        n_lines_per_move=args.n_lines_per_move,
+        input_format=args.input_format,
+        output_format=args.output_format,
     )

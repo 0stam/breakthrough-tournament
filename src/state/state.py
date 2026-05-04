@@ -79,6 +79,18 @@ def apply_move_coordinates(prev_state: np.ndarray, move_from: tuple[int, int], m
     prev_state[move_to] = moved_pawn
 
 
+def state_to_move_coordinates(prev_state: np.ndarray, new_state: np.ndarray) -> tuple[tuple[int, int], tuple[int, int]]:
+    '''
+    Returns the move coordinates (move_from, move_to) of the last move.
+
+    Assumes the state is correct and at least one move was performed.
+    '''
+    move_from = np.argwhere(new_state == FieldType.MOVE_INDICATOR)[0]
+    move_to = np.argwhere((new_state != prev_state) & (new_state != FieldType.MOVE_INDICATOR) & (new_state != FieldType.EMPTY))[0]
+
+    return tuple(move_from), tuple(move_to)
+
+
 def validate_new_state(prev_state: np.ndarray, new_state: np.ndarray, turn: int) -> None|str:
     '''
     Assuming that prev_state contains a valid board state, checks if new_state is valid.

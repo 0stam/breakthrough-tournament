@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from src.state.state import apply_move_coordinates, check_win, create_board, numpy_to_str, str_to_move_coordinates, str_to_numpy, validate_new_state
+from src.state.state import apply_move_coordinates, check_win, create_board, numpy_to_str, state_to_move_coordinates, str_to_move_coordinates, str_to_numpy, validate_new_state
 from src.state.exceptions import InvalidInputException
 
 
@@ -45,6 +45,7 @@ def test_create_board(size_x, size_y, expected):
 )
 def test_numpy_to_str(test_arr, expected):
     assert numpy_to_str(test_arr) == expected
+
 
 @pytest.mark.parametrize(
     "size_x,size_y",
@@ -211,6 +212,34 @@ def test_apply_move_coordinates_invalid(size_x, size_y, prev_str, move_from, mov
     with pytest.raises(InvalidInputException):
         apply_move_coordinates(state, move_from, move_to)
     
+
+@pytest.mark.parametrize(
+        "size_x,size_y,prev_str,new_str,expected_from,expected_to",
+        [
+            (
+                3, 5,
+                "W W W W W W _ _ _ B B B B B B",
+                "W W W W W W B _ _ o B B B B B",
+                (0, 1), (0, 2)
+            ),
+            (
+                6, 4,
+                #- - - - - -#- - - - - -#- - - - - -#- - - - - -#
+                "_ _ _ _ W _ W W W _ _ _ _ _ B _ _ _ _ o B B _ _",
+                "_ _ _ _ W _ W W o _ _ _ _ W B _ _ _ _ _ B B _ _",
+                (2, 2), (1, 1)
+            )
+        ]
+)
+def test_state_to_move_coordinates(size_x, size_y, prev_str, new_str, expected_from, expected_to):
+    prev_state = str_to_numpy(prev_str, size_y, size_x * size_y)
+    new_state = str_to_numpy(new_str, size_y, size_x * size_y)
+
+    result_from, result_to = state_to_move_coordinates(prev_state, new_state)
+
+    assert result_from == expected_from
+    assert result_to == expected_to
+
 
 @pytest.mark.parametrize(
     "size_x,size_y,prev_str,new_str,turn,expected",

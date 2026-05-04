@@ -3,12 +3,13 @@ import subprocess
 import multiprocessing
 from typing import IO
 
-from src.game.constants import InputType
+from src.game.constants import MoveFormat
 
 class PlayerProcess:
     def __init__(self, process_args: list[str]) -> None:
         self.process_args: list[str] = process_args
-        self.input_type: InputType = InputType.FULL_BOARD
+        self.input_type: MoveFormat = MoveFormat.FULL_BOARD
+        self.output_type: MoveFormat = MoveFormat.FULL_BOARD
     
     def start_process(self):
         self._process: subprocess.Popen = subprocess.Popen(

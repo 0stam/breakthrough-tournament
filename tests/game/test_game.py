@@ -13,7 +13,7 @@ def test_simple_run():
         second_args=[sys.executable, "-m", "tests.game.dummy_process"],
         t_init=1.0,
         t_info_parsing=1.0,
-        t_move=0.01
+        t_move=0.05
     )
 
     results = game.run()
@@ -123,6 +123,60 @@ def test_multiple_lines_per_move_last_incomplete():
         board_size_y=9,
         first_args=[sys.executable, "-m", "tests.game.dummy_process"],
         second_args=[sys.executable, "-m", "tests.game.dummy_process", "--n-lines-per-move", "3", "--override-move", "WWW"],
+        t_init=1.0,
+        t_info_parsing=1.0,
+        t_move=0.01
+    )
+
+    results = game.run()
+
+    assert results.first_lost ^ results.second_lost
+    assert not results.first_error_message
+    assert not results.second_error_message
+
+
+def test_mixed_input_formats():
+    game = Game(
+        board_size_x=5,
+        board_size_y=9,
+        first_args=[sys.executable, "-m", "tests.game.dummy_process", "--input-format", "1"],
+        second_args=[sys.executable, "-m", "tests.game.dummy_process", "--input-format", "0"],
+        t_init=1.0,
+        t_info_parsing=1.0,
+        t_move=0.01
+    )
+
+    results = game.run()
+
+    assert results.first_lost ^ results.second_lost
+    assert not results.first_error_message
+    assert not results.second_error_message
+
+
+def test_mixed_output_formats():
+    game = Game(
+        board_size_x=5,
+        board_size_y=9,
+        first_args=[sys.executable, "-m", "tests.game.dummy_process", "--output-format", "1"],
+        second_args=[sys.executable, "-m", "tests.game.dummy_process", "--output-format", "0"],
+        t_init=1.0,
+        t_info_parsing=1.0,
+        t_move=0.01
+    )
+
+    results = game.run()
+
+    assert results.first_lost ^ results.second_lost
+    assert not results.first_error_message
+    assert not results.second_error_message
+
+
+def test_all_mixed_formats():
+    game = Game(
+        board_size_x=5,
+        board_size_y=9,
+        first_args=[sys.executable, "-m", "tests.game.dummy_process", "--input-format", "1", "--output-format", "0"],
+        second_args=[sys.executable, "-m", "tests.game.dummy_process", "--input-format", "0", "--output-format", "1"],
         t_init=1.0,
         t_info_parsing=1.0,
         t_move=0.01
