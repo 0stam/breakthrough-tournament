@@ -2,7 +2,7 @@ import argparse
 import time
 import numpy as np
 
-from src.state.state import numpy_to_str, str_to_numpy
+from src.state.state import numpy_to_str, str_to_numpy, create_board
 from src.state.constants import FieldType
 
 
@@ -38,18 +38,18 @@ def dummy_process(
     
     first_turn = True
 
-    board = np.zeros((board_x, board_y), dtype=int)
+    board = create_board(board_x, board_y)
 
     while True:
         if move_wait > 0:
             time.sleep(move_wait)
 
-        if input_format == 0 or first_turn:
-            board_str = input().strip()
-            board = np.copy(str_to_numpy(board_str, board_y, board_size))
-        else:
-            move_str = input().strip()
-            move_from_x, move_from_y, move_to_x, move_to_y = map(int, move_str.split())
+        input_str = input().strip()
+
+        if input_format == 0:
+            board = np.copy(str_to_numpy(input_str, board_y, board_size))
+        elif input_format == 1 and not (first_turn and player_id == 0):
+            move_from_x, move_from_y, move_to_x, move_to_y = map(int, input_str.split())
             board[move_to_x, move_to_y] = board[move_from_x, move_from_y]
             board[move_from_x, move_from_y] = FieldType.EMPTY
 

@@ -4,9 +4,19 @@ from .player_process import PlayerProcess
 
 
 class DockerProcess(PlayerProcess):
-    def __init__(self, image_name: str, container_name: str|None = None) -> None:
+    def __init__(
+            self,
+            image_name: str,
+            memory_limit: str,
+            cpu_limit: str,
+            container_name: str|None = None
+        ) -> None:
         self.image_name = image_name
         self.container_name = container_name or image_name
+
+        self.memory_limit = memory_limit
+        self.cpu_limit = cpu_limit
+
         process_args = ["docker", "start", "-a", "-i", self.container_name]
 
         super().__init__(process_args)
@@ -14,7 +24,15 @@ class DockerProcess(PlayerProcess):
 
     def start_preparing(self) -> None:
         self._preparing_process: subprocess.Popen = subprocess.Popen(
-            ["docker", "create", "--name", self.container_name, "-i", self.image_name],
+            [
+                "docker", "create",
+                "--name", self.container_name,
+                "-i",
+                "-m", self.memory_limit,
+                "--memory-swap", self.memory_limit,  # This prevents using swap
+                "--cpus", self.cpu_limit,
+                self.image_name
+            ],
         )
     
     def join_preparation(self, timeout: float) -> None:

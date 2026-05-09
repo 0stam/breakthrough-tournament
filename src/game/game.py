@@ -133,7 +133,7 @@ class Game:
         if self.processes[player_idx].stdout not in self.selector.get_map():
             self.selector.register(self.processes[player_idx].stdout, selectors.EVENT_READ, data=player_idx)
         
-        if self.processes[player_idx].input_type == MoveFormat.FULL_BOARD or self.turn < 2:  # First move for BOTH players
+        if self.processes[player_idx].input_type == MoveFormat.FULL_BOARD or self.turn < 1:
             input_str = f"{numpy_to_str(self.board)}\n"
         elif self.processes[player_idx].input_type == MoveFormat.MOVE_ONLY:
             input_str = f"{self.get_formatted_last_move_coordinates()}\n"

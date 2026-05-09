@@ -13,5 +13,8 @@ pytest = "*"
 
 [dev-packages]
 
+[scripts]
+single_game = "python -m src.run_single_game"
+
 [requires]
 python_version = "3.14"

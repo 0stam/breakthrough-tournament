@@ -5,8 +5,23 @@ from src.game.game import Game
 
 
 def main():
-    first_process = DockerProcess("roman_skiba", "player1")
-    second_process = DockerProcess("roman_skiba", "player2")
+    cpu_limit = "3"
+    memory_limit = "8g"
+
+    docker_image_name = "roman_skiba"
+
+    first_process = DockerProcess(
+        image_name=docker_image_name,
+        memory_limit=memory_limit,
+        cpu_limit=cpu_limit,
+        container_name="player1"
+    )
+    second_process = DockerProcess(
+        image_name=docker_image_name,
+        memory_limit=memory_limit,
+        cpu_limit=cpu_limit,
+        container_name="player2"
+    )
 
     try:
         game = Game(
