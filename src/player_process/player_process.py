@@ -1,6 +1,5 @@
 import os
 import subprocess
-import multiprocessing
 from typing import IO
 
 from src.game.constants import MoveFormat
@@ -11,7 +10,24 @@ class PlayerProcess:
         self.input_type: MoveFormat = MoveFormat.FULL_BOARD
         self.output_type: MoveFormat = MoveFormat.FULL_BOARD
     
-    def start_process(self):
+    def start_preparing(self) -> None:
+        '''
+        Runs code that is not written by comeptitors, and shouldn't be counted in time limits.
+        The code is started here, but is not guaranteed to finish until join_preparation is called.
+
+        It could be used e.g. to setup Docker and performance limits.
+        '''
+        pass
+
+    def join_preparation(self, timeout: float) -> None:
+        '''
+        Waits for preparation code to finish, and kills it if it exceeds the time limit.'''
+        pass
+    
+    def start_process(self) -> None:
+        '''
+        Starts the process that will be used to play the game. Should be called after preparation is done.
+        '''
         self._process: subprocess.Popen = subprocess.Popen(
             self.process_args,
             stdin=subprocess.PIPE,
@@ -27,16 +43,24 @@ class PlayerProcess:
 
         os.set_blocking(self.stdout.fileno(), False)
     
-    def send_input(self, input_str: str):
+    def send_input(self, input_str: str) -> None:
         self.stdin.write(input_str)
         self.stdin.flush()
     
-    def request_termination(self):
+    def request_termination(self) -> None:
         self._process.terminate()
     
-    def join(self, timeout: float):
+    def join(self, timeout: float) -> None:
         try:
             self._process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             self._process.kill()
             self._process.wait()
+
+    def cleanup(self) -> None:
+        '''
+        Only call this if you don't want to reuse the process for another game.
+        Must be called after join()
+        '''
+        self.stdin.close()
+        self.stdout.close()

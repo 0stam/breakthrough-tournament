@@ -7,7 +7,7 @@ from src.game.constants import MoveFormat
 from src.game.exceptions import PlayerLostException
 from src.game.results.game_results import GameResults
 from src.game.results.process_result import ProcessResult
-from src.game.player_process import PlayerProcess
+from src.player_process.player_process import PlayerProcess
 from src.state.state import apply_move_coordinates, check_win, create_board, numpy_to_str, state_to_move_coordinates, str_to_move_coordinates, str_to_numpy, validate_new_state
 from src.state.exceptions import InvalidInputException
 
@@ -17,14 +17,19 @@ class Game:
         self,
         board_size_x: int,
         board_size_y: int,
-        first_args: list[str],
-        second_args: list[str],
+        first_process: PlayerProcess,
+        second_process: PlayerProcess,
+        t_process_preparation: float,
         t_init: float,
         t_info_parsing: float,
         t_move: float
     ):
-        self.first_args: list[str] = first_args
-        self.second_args: list[str] = second_args
+        self.processes: list[PlayerProcess] = [
+            first_process,
+            second_process
+        ]
+
+        self.t_process_preparation: float = t_process_preparation
         self.t_init: float = t_init
         self.t_info_parsing: float = t_info_parsing
         self.t_move: float = t_move
@@ -42,13 +47,15 @@ class Game:
         board = create_board(self.board_size_x, self.board_size_y)
         self.board = board
 
-        self.processes: list[PlayerProcess] = []
-        self.processes.append(PlayerProcess(self.first_args))
-        self.processes.append(PlayerProcess(self.second_args))
-
         try:
-            self.processes[0].start_process()
-            self.processes[1].start_process()
+            for process in self.processes:
+                process.start_preparing()
+            
+            for process in self.processes:
+                process.join_preparation(timeout=self.t_process_preparation)
+
+            for process in self.processes:
+                process.start_process()
 
             self.selector.register(self.processes[0].stdout, selectors.EVENT_READ, data=0)
             self.selector.register(self.processes[1].stdout, selectors.EVENT_READ, data=1)
