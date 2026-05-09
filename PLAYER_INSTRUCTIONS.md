@@ -16,17 +16,17 @@ Także jakby były jakieś problemy, kogoś rozwiązanie się nie odpalało itp.
 
 ## Informacje ogólne
 
-**Sposób komunikacji:** standardowe wejście wyjście
+**Sposób komunikacji:** standardowe wejście/wyjście
 
 **Dopuszczalne formaty ruchu:** cała plansza albo same koordynaty ruszanego pionka
 
 **Sposób przesłania rozwiązania:** obraz Dockerowy
 
-**Ograniczenia:** gracz mają ograniczony czas na ruch i inne fazy działania programu, a także ograniczony dostęp do zasobów
+**Ograniczenia:** gracze mają ograniczony czas na ruch i inne fazy działania programu, a także ograniczony dostęp do zasobów
 
 ## Modyfikacje zasad
 
-Jeśli gracz zbije wszystkie pionki przecinika, natychmiast wygrywa. Reszta zasad jest zgodna z opisem na liście.
+Jeśli gracz zbije wszystkie pionki przeciwnika, natychmiast wygrywa. Reszta zasad jest zgodna z opisem na liście.
 
 ## Komunikacja
 
@@ -100,7 +100,7 @@ Format obsługiwany przez turniej:
 W W W W W W W W W W W W _ _ _ _ _ _ _ _ _ _ _ _ B B B B B B B B B B B B
 ```
 
-Czyli po ruchu gracz białego plansza może wyglądać następująco
+Czyli po ruchu gracza białego plansza może wyglądać następująco
 
 Format z enterami:
 
@@ -179,16 +179,16 @@ Przykład:
 
 Przed każdym ruchem turniej wysyła graczowi obecny stan planszy w wybranym formacie:
 
-- cała plansza, jeśli gracz wybrał format 0 lub **to jest pierwsz ruch gracza białego**
+- cała plansza, jeśli gracz wybrał format 0 lub **to jest pierwszy ruch gracza białego**
 - tylko koordynaty ostatniego ruchu, w przeciwnym wypadku
 
 _INFO:_ od tego momentu liczony jest limit czasu na ruch
 
 ### Ruch gracza
 
-Gracz ma ograniczony czas na ruch. W zależności od implementacji, ograniczenie jest irytujące dla graczy albo prowadzącego tuniej. Spróbowałem zrobić pewną hybrydę.
+Gracz ma ograniczony czas na ruch. W zależności od implementacji, ograniczenie jest irytujące dla graczy albo prowadzącego turniej. Spróbowałem zrobić pewną hybrydę.
 
-Załóżmy, ża na ruch jest 1s. Pojawia się problem, że gracze muszą zgadywać, np. jaką głębokość drzewa program da radę zbadać, zanim upłynie ten czas. Jeden zawodnik może np. ustawić głębokość 5 i na styk się zmieścić. Drugi może ustawić 5, po czym przegrać przez przekroczenie czasu. Trzeci znowu może ustawić bezpieczne 3 i przegrać z tym, który ustawił 5.
+Załóżmy, że na ruch jest 1s. Pojawia się problem, że gracze muszą zgadywać, np. jaką głębokość drzewa program da radę zbadać, zanim upłynie ten czas. Jeden zawodnik może np. ustawić głębokość 5 i na styk się zmieścić. Drugi może ustawić 5, po czym przegrać przez przekroczenie czasu. Trzeci znowu może ustawić bezpieczne 3 i przegrać z tym, który ustawił 5.
 
 Żeby rozwiązać ten problem, podczas swojego czasu na ruch program może wypisać dowolną ilość linii z ruchem, a turniej zapisze ostatnią pełną linię (pełna linia kończy się enterem).
 
@@ -222,10 +222,10 @@ Turniej działa następująco:
 - turniej wysyła graczowi poprzedni stan planszy
 - turniej zaczyna liczyć czas na ruch
 - gracz wypisuje ruchy
-- turniej na bieżąco zczytuje linie wysyłane przez gracza
+- turniej na bieżąco sczytuje linie wysyłane przez gracza
 - gdy czas na ruch mija, turniej sprawdza ostatnią pełną linię (zakończoną enterem) i zapisuje ją jako ruch
 - turniej wysyła ruch do przeciwnika
-- turniej przestaje zczytywać output tego gracza i zaczyna zajmować się przeciwnikiem
+- turniej przestaje sczytywać output tego gracza i zaczyna zajmować się przeciwnikiem
 
 Ma to kilka konsekwencji.
 
@@ -353,7 +353,7 @@ W zależności od języka może się różnić, ale nie powinien być zbyt skomp
 
 Obraz należy zbudować i zapisać używając `docker save`. Mój bardzo ograniczony research sugeruje, że `docker export` nie zapisuje komendy, z którą kontener ma wystartować, więc nie można go tu użyć.
 
-**UWAGA:** będzie mi dużo prościej, jeśli wasz kontener będzie się nazwyał `imie_nazwisko:latest` bez polskich znaków. Nie jest to konieczne, ale uprości mi robotę.
+**UWAGA:** będzie mi dużo prościej, jeśli wasz kontener będzie się nazywał `imie_nazwisko:latest` bez polskich znaków. Nie jest to konieczne, ale uprości mi robotę.
 
 Programy będą uruchamiane przez:
 
