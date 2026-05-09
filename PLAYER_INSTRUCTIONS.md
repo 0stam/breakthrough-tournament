@@ -356,7 +356,7 @@ odpowiadamy własnym ruchem
 
 Obraz dockerowy z rozwiązaniem. Obraz powinien jako domyślną komendę uruchamiać program z algorytmem, który będzie się komunikował według opisanego wyżej schematu.
 
-Przykładowy Dockerfile dla mojego programu
+Przykładowy Dockerfile dla mojego programu (poza tym repozytorium)
 
 ```Dockerfile
 FROM python:3.13-slim
@@ -385,7 +385,7 @@ Obraz należy zbudować i zapisać używając `docker save`. Mój bardzo ogranic
 Programy będą uruchamiane przez:
 
 ```bash
-docker create --name container_name -i -m memory_limit --memory-swap self.memory_limit --cpus cpu_limit image_name
+docker create --name container_name -i -m memory_limit --memory-swap memory_limit --cpus cpu_limit image_name
 docker run  -a -i container_name
 ```
 
