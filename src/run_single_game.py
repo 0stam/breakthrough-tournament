@@ -1,6 +1,7 @@
 import sys
 
 from src.player_process.docker_process import DockerProcess
+# from src.player_process.player_process import PlayerProcess
 from src.game.game import Game
 
 
@@ -22,6 +23,10 @@ def main():
         cpu_limit=cpu_limit,
         container_name="player2"
     )
+
+    # For debugging, local processes can be used. Remember to provide correct paths
+    # first_process = PlayerProcess(["/path/to/interpreter/.venv/bin/python", "/path/to/script/with/algorithm.py"])
+    # second_process = PlayerProcess(["/path/to/interpreter/.venv/bin/python", "/path/to/script/with/algorithm.py"])
 
     try:
         game = Game(
