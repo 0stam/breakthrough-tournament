@@ -46,7 +46,7 @@ class DockerProcess(PlayerProcess):
 
             raise TimeoutError(f"Container {self.container_name} preparation timed out")
     
-    def cleanup(self, deletion_timeout: float=10.0) -> None:
+    def cleanup(self, deletion_timeout: float=15.0) -> None:
         super().cleanup()
 
         try:

@@ -62,8 +62,8 @@ class Game:
 
             self._read_preferred_format()
 
-            print(f"First player prefers {self.processes[0].input_type} format", file=sys.stderr)
-            print(f"Second player prefers {self.processes[1].input_type} format", file=sys.stderr)
+            print(f"First player prefers {self.processes[0].input_type} {self.processes[0].output_type} format", file=sys.stderr)
+            print(f"Second player prefers {self.processes[1].input_type} {self.processes[1].output_type} format", file=sys.stderr)
 
             # board_size_x board_size_y player_id (0 - white, 1 - black)
             self.processes[0].send_input(f"{self.board_size_x} {self.board_size_y} 0\n")
@@ -77,7 +77,7 @@ class Game:
 
                 # Print board state
 
-                print(numpy_to_beautiful_str(self.board), end="\n\n")
+                print(numpy_to_beautiful_str(self.board), end="\n\n", file=sys.stderr)
 
                 if check_win(self.board, current_player_idx):
                     self.processes[0].request_termination()
