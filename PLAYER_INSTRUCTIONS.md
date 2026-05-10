@@ -148,13 +148,22 @@ Czyli na początku gry na planszy 8x8:
 - gracz biały ma pionki na współrzędnych (0, 0), (1, 0), ..., (7, 0) oraz (0, 1), (1, 1), ..., (7, 1)
 - gracz czarny ma pionki na współrzędnych (0, 6), (1, 6), ..., (7, 6) oraz (0, 7), (1, 7), ..., (7, 7)
 
-Jeśli twój program używa innych współrzędnych, prawdopodobnie da się je przekonwertować dwiema operacjami dodawania/odejmowania
-
 Przykład:
 
 `0 1 1 2` - gracz biały ruszył się swoim pionkiem do przodu na ukos
 
 `5 5 5 4` - gracz czarny ruszył się swoim pionkiem do przodu
+
+Jeśli twój program używa innych współrzędnych, prawdopodobnie da się je przekonwertować dwiema operacjami dodawania/odejmowania.  
+Po wstępnych testach okazało się wiele osób używa koordynatów gdzie (0,0) znajduje się w lewym górnym rogu (a tutaj jest w lewym dolnym). Można to przekonwertować w obie strony następującą fukcją:
+
+```python
+//warto też zwrócić uwagę na kolejność argumentów - co jest kolumną a co wierszem
+def convert(column, row, column_count):
+    new_row = column_count - 1 - row
+    return column, new_row
+```
+
 ### Wizualizacja formatów ruchu
 - Po lewej: koordynaty
 - Po prawej: format całej planszy
