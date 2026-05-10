@@ -41,6 +41,21 @@ W uproszczeniu komunikacja ma następujący przebieg:
 
 Sekwencja powtarza się, aż któryś z graczy wygra.
 
+**UWAGA:** wiele języków programowania buforuje output, należy zwrócić na to uwagę.  
+Przykłady wymuszenia wypchnięcia wyniku na wyjście standardowe:
+
+```python
+#python
+print("something", flush=True)
+```
+
+```cpp
+//cpp
+std::cout << "something" << std::endl;
+
+/*jest też std::flush, który robi to samo, ale bez nowej linii
+```
+
 ## Deklaracja formatu
 
 Natychmiast po uruchomieniu, gracz powinien wypisać linię:
@@ -122,8 +137,7 @@ W W W W W W W W W W W W _ _ _ _ _ _ _ _ _ B _ _ B B B o B B B B B B B B
 Zwróć uwagę, że:
 
 - oznaczenia W/B są przeciwne, niż można by się spodziewać po nazwie
-- przy zapisie tego formatu jako tablica, współrzędne nie zgrywają się ze współrzędnymi, których można by się spodziewać po planszy szachowej
-- jeśli twój program ma inne założenia co do kierunku osi/kolejności linii, w przypadku samych współrzędnych da się to bardzo prosto naprawić, a w przypadku wczytywania całej planszy nie jest to takie proste
+- przy zapisie tego formatu jako tablica, współrzędne nie zgrywają się ze współrzędnymi, których można by się spodziewać po planszy szachowej. Jeśli twój program ma inne założenia co do kierunku osi/kolejności linii, w przypadku samych współrzędnych da się to bardzo prosto naprawić (przykład funkcji konwertującej w sekcji poniżej). W przypadku wczytywania całej planszy nie jest to takie proste
 - symbol pola, z którego został wykonany ruch, jest bezużyteczny (z wielu powodów)
 
 Także jeszcze raz powtarzam, że prawdopodobnie prościej będzie użyć współrzędnych ruchów.
@@ -140,13 +154,13 @@ Kierunki osi działają jak na planszy szachowej, to znaczy:
 
 - A, B, C zmienia się w 0, 1, 2 na osi X
 - 1, 2, 3 zmienia się w 0, 1, 2 na osi Y
-- po ruchu gracza białego, współrzędna y jego pionka zmienia się o +1
-- po ruchu gracza czarnego, współrzędna y jego pionka zmienia się o -1
+- po ruchu gracza białego (B), współrzędna y jego pionka zmienia się o +1
+- po ruchu gracza czarnego (W), współrzędna y jego pionka zmienia się o -1
 
 Czyli na początku gry na planszy 8x8:
 
-- gracz biały ma pionki na współrzędnych (0, 0), (1, 0), ..., (7, 0) oraz (0, 1), (1, 1), ..., (7, 1)
-- gracz czarny ma pionki na współrzędnych (0, 6), (1, 6), ..., (7, 6) oraz (0, 7), (1, 7), ..., (7, 7)
+- gracz biały (B) ma pionki na współrzędnych (0, 0), (1, 0), ..., (7, 0) oraz (0, 1), (1, 1), ..., (7, 1)
+- gracz czarny (W) ma pionki na współrzędnych (0, 6), (1, 6), ..., (7, 6) oraz (0, 7), (1, 7), ..., (7, 7)
 
 Przykład:
 
@@ -177,14 +191,14 @@ Gdy gracz zadeklaruje się, jakich formatów chce używać, turniej wysyła do n
 
 Gdzie `{id gracza}`:
 
-- 0 - biały
-- 1 - czarny
+- 0 - biały (B)
+- 1 - czarny (W)
 
 Przykład:
 
-`8 7 0` - plansza o szerokości 8, wysokości 7, gracz biały
+`8 7 0` - plansza o szerokości 8, wysokości 7, gracz biały (B)
 
-`8 8 1` - plansza 8x8, gracz czarny
+`8 8 1` - plansza 8x8, gracz czarny (W)
 
 ## Sekwencja ruchów
 
