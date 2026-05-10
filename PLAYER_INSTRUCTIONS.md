@@ -389,6 +389,12 @@ docker create --name container_name -i -m memory_limit --memory-swap self.memory
 docker run  -a -i container_name
 ```
 
+### Debugowanie
+
+Do debugowania poleca się skorzystać z lokalnych procesów. Można to osiągnąć poprzez odkomentowanie odpowiedznich linijek w `run_single_game.py`
+
+Tip: żeby debug printy działały warto skorzystać z stderr
+
 ### Którędy przesłać rozwiązanie
 
 Metoda jest dowolna. Możecie użyć Docker Huba. Możecie udostępnić plik na Google Drive. Być może przyjmę nawet na pendrivie.

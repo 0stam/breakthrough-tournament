@@ -25,3 +25,7 @@ Run:
 ```bash
 pipenv run single_game
 ```
+
+## Debugging
+
+For debugging purposes local processes can be used. To achievie that, uncomment related lines in `src/run_single_game.py`
