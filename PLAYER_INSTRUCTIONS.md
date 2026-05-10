@@ -73,9 +73,9 @@ Błędne przykłady:
 
 Zgodnie z listą, na planszy mamy różne typy pól:
 
-B - gracz pierwszy, biały (!!!)
+B - gracz pierwszy, biały (!!! **B - BIAŁY** !!!)
 
-W - gracz drugi, czarny (!!!)
+W - gracz drugi, czarny (!!! **W - CZARNY** !!!)
 
 \_ - puste pole
 
@@ -155,6 +155,10 @@ Przykład:
 `0 1 1 2` - gracz biały ruszył się swoim pionkiem do przodu na ukos
 
 `5 5 5 4` - gracz czarny ruszył się swoim pionkiem do przodu
+### Wizualizacja formatów ruchu
+- Po lewej: koordynaty
+- Po prawej: format całej planszy
+<img width="746" height="766" alt="visualisation" src="https://github.com/user-attachments/assets/added3cb-4965-4369-aaf9-a0826937ce9a" />
 
 ## Informacje o planszy
 
