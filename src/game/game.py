@@ -8,7 +8,7 @@ from src.game.exceptions import PlayerLostException
 from src.game.results.game_results import GameResults
 from src.game.results.process_result import ProcessResult
 from src.player_process.player_process import PlayerProcess
-from src.state.state import apply_move_coordinates, check_win, create_board, numpy_to_str, state_to_move_coordinates, str_to_move_coordinates, str_to_numpy, validate_new_state
+from src.state.state import apply_move_coordinates, check_win, create_board, numpy_to_beautiful_str, numpy_to_str, state_to_move_coordinates, str_to_move_coordinates, str_to_numpy, validate_new_state
 from src.state.exceptions import InvalidInputException
 
 
@@ -74,6 +74,10 @@ class Game:
             while True:
                 current_player_idx = self.turn % 2
                 self._perform_move()
+
+                # Print board state
+
+                print(numpy_to_beautiful_str(self.board), end="\n\n")
 
                 if check_win(self.board, current_player_idx):
                     self.processes[0].request_termination()
@@ -144,7 +148,7 @@ class Game:
 
         result = self._collect_last_line_from_single_player(player_idx=player_idx, timeout=self.t_move)
 
-        print(f"Result: {result}", file=sys.stderr)
+        print(result, file=sys.stderr)
 
         try:
             if self.processes[player_idx].output_type == MoveFormat.FULL_BOARD:
@@ -165,6 +169,7 @@ class Game:
         except InvalidInputException as e:
             result.lost[player_idx] = True
             result.err_msg[player_idx] = str(e)
+        
 
         self._check_if_lost(result)
 

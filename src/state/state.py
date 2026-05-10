@@ -29,6 +29,13 @@ def str_to_numpy(s: str, size_y: int, size_total: int) -> np.ndarray:
     return result
 
 
+def numpy_to_beautiful_str(board: np.ndarray) -> str:
+    '''
+    Prints the board in a more human-readable format, with rows reversed and columns separated by spaces.
+    '''
+    return "\n".join(map(lambda sub_arr: " ".join(map(chr, sub_arr)), board[:, ::-1].T))
+
+
 def str_to_move_coordinates(s: str) -> tuple[tuple[int, int], tuple[int, int]]:
     parts = s.strip().split()
 
@@ -60,7 +67,10 @@ def apply_move_coordinates(prev_state: np.ndarray, move_from: tuple[int, int], m
     
     Assumes that the prev_state is correct.
 
-    Only validates if the coordinates are in bounds.
+    Note: while this function does some basic validation, it is not tested and is only meant
+    to provide more verbose errors when using the move coordinates format
+
+    The only errors guaranteed to be caught are out of bound errors
     '''
 
     for i in range(2):
@@ -69,6 +79,20 @@ def apply_move_coordinates(prev_state: np.ndarray, move_from: tuple[int, int], m
         
         if not (0 <= move_to[i] < prev_state.shape[i]):
             raise InvalidInputException(f"Move to coordinates out of bounds: {move_to}, board shape: {prev_state.shape}")
+    
+    if prev_state[move_from] in (FieldType.EMPTY, FieldType.MOVE_INDICATOR):
+        raise InvalidInputException(f"Invalid move: Move from empty field: {move_from}")
+    
+    direction = move_to[1] - move_from[1]
+
+    if direction not in (-1, 1):
+        raise InvalidInputException(f"Invalid move: y direction is not 1 or -1: {direction}")
+
+    if prev_state[move_from] == FieldType.FIRST_PLAYER and direction != 1:
+        raise InvalidInputException(f"Invalid move: First player can only move in positive y direction, but tried to move from {move_from} to {move_to}")
+    
+    if prev_state[move_from] == FieldType.SECOND_PLAYER and direction != -1:
+        raise InvalidInputException(f"Invalid move: Second player can only move in negative y direction, but tried to move from {move_from} to {move_to}")
     
     # Clear old move indicator
     prev_state[prev_state == FieldType.MOVE_INDICATOR] = FieldType.EMPTY
