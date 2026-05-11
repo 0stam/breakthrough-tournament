@@ -8,6 +8,24 @@ from tests.swiss_score_tracking.dummy_tournament import DummyTournament as Dummy
     "num_of_rounds",
     [1, 2, 3, 6, 12, 24]
 )
+def test_mathing_num_of_matches(num_of_rounds):
+    tournament = DummyTournament(num_of_rounds=num_of_rounds)
+    tournament.load_players()
+
+    tournament.run_tournament()
+
+    swiss_matches = len(tournament.match_log._entries)
+    tracker_matches = 0
+    for round in tournament.score_tracker.prev_rounds:
+        tracker_matches += len(round)
+
+    assert swiss_matches == tracker_matches, f"MatchLog logged {swiss_matches} matches, ScoreTracker {tracker_matches}"
+
+
+@pytest.mark.parametrize(
+    "num_of_rounds",
+    [1, 2, 3, 6, 12, 24]
+)
 def test_matching_points(num_of_rounds):
     tournament = DummyTournament(num_of_rounds=num_of_rounds)
     tournament.load_players()

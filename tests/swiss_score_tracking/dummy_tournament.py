@@ -17,9 +17,9 @@ def run_dummy_game(first_player_name, second_player_name):
 
 
 class DummyTournament:
-    def __init__(self,num_of_rounds, match_log = MatchLog()):
+    def __init__(self,num_of_rounds):
         self.num_of_rounds = num_of_rounds
-        self.match_log = match_log
+        self.match_log = MatchLog()
         self.score_tracker = ScoreTracker()
     
     def load_players(self):
