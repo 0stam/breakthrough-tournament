@@ -1,5 +1,7 @@
 import logging
 import sys
+import pickle
+import random
 from pathlib import Path
 import src.swiss.pairing_strategies.min_cost
 from src.swiss.match_log import MatchLog
@@ -67,10 +69,17 @@ class Tournament:
     def load_players(self, players_file=None):
         if players_file is None:
             players_file = Path(__file__).parent.parent.parent / "players.txt"
+
+        player_names = []
         with open(players_file, "r") as f:
             for line in f:
-                self.match_log.add_player(line.strip())
-                self.score_tracker.players.append(Player(name=line.strip()))
+                player_names.append(line.strip())
+
+        random.shuffle(player_names)
+        for player_name in player_names:
+            self.match_log.add_player(player_name)
+            self.score_tracker.players.append(Player(name=player_name))
+
 
     def run_match(self, pairing):
 
@@ -87,7 +96,13 @@ class Tournament:
         game_match = self.score_tracker.register_match_result(first_player, second_player, first_player_points, second_player_points)
         self.match_log.add_result(first_player.name, second_player.name, first_player_points, second_player_points)
 
-        logger.info(f"{game_match.first_player.name} (S: {game_match.first_p_start_score}) (SB: {game_match.first_player.side_balance}) vs {game_match.second_player.name} (S: {game_match.second_p_start_score}) (SB: {game_match.second_player.side_balance}) - Result: {game_match.result.name}")
+        with open(Path(__file__).parent.parent.parent / "latest_match_log.pkl", "wb") as file:
+            pickle.dump(self.match_log, file)
+        
+        with open(Path(__file__).parent.parent.parent / "latest_score_tracker.pkl", "wb") as file:
+            pickle.dump(self.score_tracker, file)
+
+        logger.info(f"{game_match.first_player.name} (S: {game_match.first_p_start_score}) (SB: {game_match.first_player.side_balance - 1}) vs {game_match.second_player.name} (S: {game_match.second_p_start_score}) (SB: {game_match.second_player.side_balance + 1}) - Result: {game_match.result.name}")
 
     def run_round(self, pairings):
         for pairing in pairings.pairs:
