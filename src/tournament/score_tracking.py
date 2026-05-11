@@ -58,20 +58,20 @@ class ScoreTracker:
     prev_rounds: List[List[Match]] = field(default_factory=list)
     curr_round_matches: List[Match] = field(default_factory=list)
 
-    def register_match_result(self, first_player: Player, second_player: Player, results: GameResults, move_history: Optional[list] = None) -> None:
+    def register_match_result(self, first_player: Player, second_player: Player, first_player_points: int, second_player_points: int, move_history: Optional[list] = None) -> None:
         
         first_player.side_balance += 1
         second_player.side_balance -= 1
+        first_player.score += first_player_points
+        second_player.score += second_player_points
         game_match = Match(first_player=first_player, second_player=second_player)
 
-        match (results.first_lost, results.second_lost):
-                case (False, True):
+        match (first_player_points, second_player_points):
+                case (0, 1):
                     game_match.result = MatchResult.FIRST_PLAYER_WINS
-                    first_player.score += 1
-                case (True, False):
+                case (1, 0):
                     game_match.result = MatchResult.SECOND_PLAYER_WINS
-                    second_player.score += 1
-                case (True, True):
+                case (1, 1):
                     game_match.result = MatchResult.DRAW
                 # case _:
                 #     raise RuntimeError("Invalid game result")

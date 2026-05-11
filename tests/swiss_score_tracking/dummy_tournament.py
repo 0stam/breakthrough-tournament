@@ -10,10 +10,10 @@ from src.game.results.game_results import GameResults
 
 def run_dummy_game(first_player_name, second_player_name):
     if first_player_name < second_player_name:
-        return GameResults(first_lost=False, second_lost=True)
+        return GameResults(first_lost=False, second_lost=True, first_error_message=None, second_error_message=None)
     elif first_player_name > second_player_name:
-        return GameResults(first_lost=True, second_lost=False)
-    return GameResults(first_lost=True, second_lost=True)
+        return GameResults(first_lost=True, second_lost=False, first_error_message=None, second_error_message=None)
+    return GameResults(first_lost=True, second_lost=True, first_error_message=None, second_error_message=None)
 
 
 class DummyTournament:
@@ -51,7 +51,7 @@ class DummyTournament:
             case _:
                 raise RuntimeError("Invalid game result")
         
-        self.score_tracker.register_match_result(first_player, second_player, results)
+        self.score_tracker.register_match_result(first_player, second_player, first_player_points, second_player_points)
             
         self.match_log.add_result(first_player.name, second_player.name, first_player_points, second_player_points)
 

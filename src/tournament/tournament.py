@@ -69,7 +69,7 @@ class Tournament:
                 case _:
                     raise RuntimeError("Invalid game result")
             
-            self.score_tracker.register_match_result(first_player, second_player, results)
+            self.score_tracker.register_match_result(first_player, second_player, first_player_points, second_player_points)
                 
             self.match_log.add_result(first_player.name, second_player.name, first_player_points, second_player_points)
 

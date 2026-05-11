@@ -17,6 +17,7 @@ networkx = "*"
 [scripts]
 single_game = "python -m src.run_single_game"
 tournament = "python -m src.run_tournament"
+tests = "python -m pytest"
 
 [requires]
 python_version = "3.14"
