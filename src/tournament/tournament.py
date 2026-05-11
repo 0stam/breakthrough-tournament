@@ -1,9 +1,9 @@
 import sys
+from pathlib import Path
 import src.swiss.pairing_strategies.min_cost
 from src.swiss.match_log import MatchLog
-from src.player_process.player_process import PlayerProcess
-# from src.player_process.docker_process import DockerProcess
-from src.tournament.score_tracking import Player, MatchResult, ScoreTracker
+from src.player_process.docker_process import DockerProcess
+from src.tournament.score_tracking import Player, ScoreTracker
 from src.game.game import Game
 
 CPU_LIMIT = "3"
@@ -16,7 +16,8 @@ class Tournament:
         self.score_tracker = ScoreTracker()
     
     def load_players(self):
-        with open("players.txt", "r") as f:
+        players_file = Path(__file__).parent.parent.parent / "players.txt"
+        with open(players_file, "r") as f:
             for line in f:
                 self.match_log.add_player(line.strip())
                 self.score_tracker.players.append(Player(name=line.strip()))
@@ -28,21 +29,19 @@ class Tournament:
 
         first_player, second_player = ScoreTracker.determine_first_player(player_a, player_b)
 
-        # first_process = DockerProcess(
-        #     image_name=pairing.player_a,
-        #     memory_limit=MEMORY_LIMIT,
-        #     cpu_limit=CPU_LIMIT,
-        #     container_name="player1"
-        # )
-        # second_process = DockerProcess(
-        #     image_name=pairing.player_b,
-        #     memory_limit=MEMORY_LIMIT,
-        #     cpu_limit=CPU_LIMIT,
-        #     container_name="player2"
-        # )
+        first_process = DockerProcess(
+            image_name=first_player.name,
+            memory_limit=MEMORY_LIMIT,
+            cpu_limit=CPU_LIMIT,
+            container_name="player1"
+        )
+        second_process = DockerProcess(
+            image_name=second_player.name,
+            memory_limit=MEMORY_LIMIT,
+            cpu_limit=CPU_LIMIT,
+            container_name="player2"
+        )
 
-        first_process = PlayerProcess([sys.executable, "-m", "tests.game.dummy_process"])
-        second_process = PlayerProcess([sys.executable, "-m", "tests.game.dummy_process"])
 
         try:
             game = Game(
@@ -87,12 +86,9 @@ class Tournament:
         self.score_tracker.end_round()
 
     def run_tournament(self):
-        for round in range(self.num_of_rounds):
+        for _ in range(self.num_of_rounds):
             pairings = src.swiss.pairing_strategies.min_cost.pairings(self.match_log)
             self.run_round(pairings)
     
-    def print_standings(self):
+    def print_tournament_history(self):
         self.score_tracker.print_history()
-        print("Wynik od zioma:")
-        for player in self.match_log.ranking():
-            print(f"{player}: {self.match_log.player_score(player)}")

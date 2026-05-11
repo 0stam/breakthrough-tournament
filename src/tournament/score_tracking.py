@@ -96,7 +96,7 @@ class ScoreTracker:
                 print(f"{match.first_player.name} (Score: {match.first_p_start_score}) vs {match.second_player.name} (Score: {match.second_p_start_score}) - Result: {match.result.name}")
         
         print("Final Scores:")
-        for player in self.players:
+        for player in sorted(self.players, key=lambda p: p.score, reverse=True):
             print(f"{player.name}: {player.score}")
 
     @staticmethod
