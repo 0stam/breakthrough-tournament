@@ -1,16 +1,24 @@
-import sys
-
 import pytest
 
-from tests.swiss_score_tracking.dummy_tournament import DummyTournament as DummyTournament
+from pathlib import Path
+from src.tournament.tournament import Tournament
+from src.game.results.game_results import GameResults
+
+
+def run_dummy_game(first_player_name, second_player_name):
+    if first_player_name < second_player_name:
+        return 1, 0
+    elif first_player_name > second_player_name:
+        return 0, 1
+    return 0, 0
 
 @pytest.mark.parametrize(
     "num_of_rounds",
     [1, 2, 3, 6, 12, 24]
 )
 def test_mathing_num_of_matches(num_of_rounds):
-    tournament = DummyTournament(num_of_rounds=num_of_rounds)
-    tournament.load_players()
+    tournament = Tournament(num_of_rounds=num_of_rounds, game_runner=run_dummy_game)
+    tournament.load_players(Path(__file__).parent / "test_players.txt")
 
     tournament.run_tournament()
 
@@ -27,8 +35,8 @@ def test_mathing_num_of_matches(num_of_rounds):
     [1, 2, 3, 6, 12, 24]
 )
 def test_matching_points(num_of_rounds):
-    tournament = DummyTournament(num_of_rounds=num_of_rounds)
-    tournament.load_players()
+    tournament = Tournament(num_of_rounds=num_of_rounds, game_runner=run_dummy_game)
+    tournament.load_players(Path(__file__).parent / "test_players.txt")
 
     tournament.run_tournament()
 
@@ -53,3 +61,16 @@ def test_matching_points(num_of_rounds):
         assert tracker_score == swiss_score, f"Score mismatch for player {tracker_player.name}: ScoreTracker score = {tracker_score}, MatchLog score = {swiss_score}"
 
 
+def test_final_results():
+    tournament = Tournament(num_of_rounds=-1, game_runner=run_dummy_game)
+    tournament.load_players(Path(__file__).parent / "test_players.txt")
+    tournament.num_of_rounds = len(tournament.score_tracker.players) - 1
+    tournament.run_tournament()
+
+    player_ranks = sorted(tournament.score_tracker.players, key=lambda p: p.score, reverse=True)
+    expected_ranks = sorted(tournament.score_tracker.players, key=lambda p: p.name)
+
+    for player, expected in zip(player_ranks, expected_ranks):
+        print(f"Player: {player.name}, Score: {player.score} - Expected: {expected.name}, Expected Score: {expected.score}")
+
+    assert player_ranks == expected_ranks
