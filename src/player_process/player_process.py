@@ -9,7 +9,8 @@ class PlayerProcess:
         self.process_args: list[str] = process_args
         self.input_type: MoveFormat = MoveFormat.FULL_BOARD
         self.output_type: MoveFormat = MoveFormat.FULL_BOARD
-    
+        self.t_soft_limit_left: float = 0
+
     def start_preparing(self) -> None:
         '''
         Runs code that is not written by comeptitors, and shouldn't be counted in time limits.

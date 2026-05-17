@@ -179,9 +179,10 @@ def convert(column, row, column_count):
 ```
 
 ### Wizualizacja formatów ruchu
+
 - Po lewej: koordynaty
 - Po prawej: format całej planszy
-<img width="746" height="766" alt="visualisation" src="https://github.com/user-attachments/assets/added3cb-4965-4369-aaf9-a0826937ce9a" />
+  <img width="746" height="766" alt="visualisation" src="https://github.com/user-attachments/assets/added3cb-4965-4369-aaf9-a0826937ce9a" />
 
 ## Informacje o planszy
 
@@ -266,6 +267,12 @@ Także:
 - wypisanie dużej ilości tekstu podczas ruchu przeciwnika jest niebezpieczne, bo turniej nie czyta go na bieżąco. Jest to element bezpieczeństwa, żeby nie próbować DDOSować turnieju podczas ruchu przeciwnika
 - program może bezpiecznie wypisywać linie po tym, jak upłynął jego czas na ruch, o ile nie będzie ich za dużo. Turniej przeczyta je z bufora, po czym zapomni o nich, gdy tylko dostanie świeży ruch
 - jeśli program będzie szukał ruchu dłużej niż swój czas na ruch + czas na ruch przeciwnika, prawdopodobnie ztimeoutuje w kolejnym ruchu i przegra
+
+#### Soft limit czasu
+
+Jeżeli gracz zdąży wypisać jakąkolwiek pełną linię podczas swojego czasu na ruch, turniej działa według zasad opisanych powyżej.
+
+Jeżeli gracz nie zdąży wypisać pełnej linii w limicie czasowym, turniej będzie czekał dodatkową chwilę. W sumie podczas całej gry gracz może spóźnić się o maksymalnie 3 sekundy. Np. może spóżnić się dwa razy po 1.5s albo 3 razy o 1s itd.
 
 ### Podsumowanie
 
@@ -406,6 +413,7 @@ Czasowe:
 - czas na wysłanie linii z deklaracją formatów: 1s
 - czas, który turniej poczeka między wysłaniem informacji o rozmiarze planszy, a wysłaniem stanu planszy do gracza białego: 0.5s
 - czas na ruch: 1s
+- sumaryczne dozwolone spóźnienia: 3s
 
 _INFO:_ turniej zaczyna liczyć pierwszy limit już po tym, jak kontener zostanie stworzony
 

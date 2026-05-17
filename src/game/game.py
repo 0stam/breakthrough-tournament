@@ -22,7 +22,8 @@ class Game:
         t_process_preparation: float,
         t_init: float,
         t_info_parsing: float,
-        t_move: float
+        t_move: float,
+        t_move_soft_limit: float
     ):
         self.processes: list[PlayerProcess] = [
             first_process,
@@ -33,6 +34,7 @@ class Game:
         self.t_init: float = t_init
         self.t_info_parsing: float = t_info_parsing
         self.t_move: float = t_move
+        self.t_move_soft_limit: float = t_move_soft_limit
         self.board_size_x: int = board_size_x
         self.board_size_y: int = board_size_y
         self.board_size_total: int = board_size_x * board_size_y
@@ -41,11 +43,14 @@ class Game:
 
         self.turn: int = 0
         self.board: np.ndarray = None  # type: ignore
-        self.last_move_coordnates: tuple[tuple[int, int], tuple[int, int]] = None  # type: ignore
+        self.last_move_coordinates: tuple[tuple[int, int], tuple[int, int]] = None  # type: ignore
     
     def run(self) -> GameResults:
         board = create_board(self.board_size_x, self.board_size_y)
         self.board = board
+
+        for process in self.processes:
+            process.t_soft_limit_left = self.t_move_soft_limit
 
         try:
             for process in self.processes:
@@ -146,7 +151,11 @@ class Game:
 
         self.processes[player_idx].send_input(input_str)
 
-        result = self._collect_last_line_from_single_player(player_idx=player_idx, timeout=self.t_move)
+        result = self._collect_last_line_from_single_player(
+            player_idx=player_idx,
+            timeout=self.t_move,
+            final_timeout=self.processes[player_idx].t_soft_limit_left
+        )
 
         print(result, file=sys.stderr)
 
@@ -173,7 +182,7 @@ class Game:
 
         self._check_if_lost(result)
 
-        self.last_move_coordnates = state_to_move_coordinates(self.board, new_state)
+        self.last_move_coordinates = state_to_move_coordinates(self.board, new_state)
         self.board = new_state
     
     def _check_if_lost(self, result: ProcessResult) -> None:
@@ -185,8 +194,6 @@ class Game:
 
         last_lines = {0: "", 1: ""}
         unfinished_lines = {0: "", 1: ""}
-
-        print(f"Starting at {time.time()}, deadline at {deadline}", file=sys.stderr)
 
         while True:
             time_left = deadline - time.time()
@@ -218,8 +225,6 @@ class Game:
             if all(line != "" for line in last_lines.values()):
                 break
         
-        print(f"Finished at {time.time()}, last lines: {last_lines}", file=sys.stderr)
-        
         error_msg = "Timeout when waiting for players' line"
 
         error_msgs = [error_msg if last_lines[i] == "" else None for i in range(2)]
@@ -230,24 +235,36 @@ class Game:
             err_msg=error_msgs
         )
     
-    def _collect_last_line_from_single_player(self, player_idx: int, timeout: float) -> ProcessResult:
+    def _collect_last_line_from_single_player(self, player_idx: int, timeout: float, final_timeout: float|None) -> ProcessResult:
         '''
         Collects the last complete line from the specified player's output within the given timeout.
         If the player does not produce a complete line within the timeout, it is considered lost.
+
+        If the process doesn't output a complete line within the initial timeout, but does output
+        a complete line within the final timeout, the time after initial timeout is subtracted from
+        the player's soft time limit.
 
         This function assumes that only a single stdout is currently registered in the selector
         '''
         assert len(self.selector.get_map()) == 1, "Only one player's output should be registered in the selector"
 
         deadline = time.time() + timeout
+        final_deadline = deadline + (final_timeout if final_timeout else 0)
 
         last_line = ""
         unfinished_line = ""
 
-        while True:
-            time_left = deadline - time.time()
+        exceeded_initial_timeout = False
 
-            if time_left <= 0:
+        while True:
+            curr_time = time.time()
+
+            if deadline - curr_time > 0:
+                time_left = deadline - curr_time
+            elif final_deadline - curr_time > 0 and not last_line:
+                time_left = final_deadline - curr_time
+                exceeded_initial_timeout = True
+            else:
                 break
 
             events = self.selector.select(timeout=time_left)
@@ -283,6 +300,9 @@ class Game:
 
                         unfinished_line = in_data[endline_idx + 1:]
         
+        if exceeded_initial_timeout:
+            self.processes[player_idx].t_soft_limit_left -= curr_time - deadline
+
         lost = [False, False]
         last_lines = ["", ""]
         error_msgs: list[str|None] = [None, None]
@@ -300,6 +320,6 @@ class Game:
         )
     
     def get_formatted_last_move_coordinates(self) -> str:
-        move_from, move_to = self.last_move_coordnates
+        move_from, move_to = self.last_move_coordinates
 
         return f"{move_from[0]} {move_from[1]} {move_to[0]} {move_to[1]}"

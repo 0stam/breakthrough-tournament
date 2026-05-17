@@ -41,9 +41,6 @@ def dummy_process(
     board = create_board(board_x, board_y)
 
     while True:
-        if move_wait > 0:
-            time.sleep(move_wait)
-
         input_str = input().strip()
 
         if input_format == 0:
@@ -54,6 +51,9 @@ def dummy_process(
             board[move_from_x, move_from_y] = FieldType.EMPTY
 
         first_turn = False
+
+        if move_wait > 0:
+            time.sleep(move_wait)
 
         # --- Dummy move: move the first pawn in the direction of the opponent ---
         board[board == FieldType.MOVE_INDICATOR] = FieldType.EMPTY  # Clear move indicators from previous turn

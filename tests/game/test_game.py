@@ -18,7 +18,8 @@ def test_simple_run():
         t_process_preparation=1.0,
         t_init=1.0,
         t_info_parsing=1.0,
-        t_move=0.05
+        t_move=0.05,
+        t_move_soft_limit=1
     )
 
     results = game.run()
@@ -43,7 +44,8 @@ def test_bad_init_output():
         t_process_preparation=1.0,
         t_init=1.0,
         t_info_parsing=1.0,
-        t_move=0.01
+        t_move=0.01,
+        t_move_soft_limit=2
     )
 
     results = game.run()
@@ -69,7 +71,8 @@ def test_bad_move_output():
         t_process_preparation=1.0,
         t_init=1.0,
         t_info_parsing=1.0,
-        t_move=0.01
+        t_move=0.01,
+        t_move_soft_limit=2
     )
 
     results = game.run()
@@ -104,7 +107,8 @@ def test_init_timeout(allowed_wait, first_wait, second_wait, first_error, second
         t_process_preparation=1.0,
         t_init=allowed_wait,
         t_info_parsing=1.0,
-        t_move=0.01
+        t_move=0.01,
+        t_move_soft_limit=2
     )
 
     results = game.run()
@@ -128,6 +132,86 @@ def test_init_timeout(allowed_wait, first_wait, second_wait, first_error, second
             assert not results.second_lost
         assert not results.second_error_message
 
+def test_move_timeout():
+    first_process = PlayerProcess([sys.executable, "-m", "tests.game.dummy_process", "--move-wait", "0.05"])
+    second_process = PlayerProcess([sys.executable, "-m", "tests.game.dummy_process"])
+
+    game = Game(
+        board_size_x=5,
+        board_size_y=5,
+        first_process=first_process,
+        second_process=second_process,
+        t_process_preparation=1.0,
+        t_init=1.0,
+        t_info_parsing=1.0,
+        t_move=0.01,
+        t_move_soft_limit=0
+    )
+
+    results = game.run()
+
+    first_process.cleanup()
+    second_process.cleanup()
+
+    assert results.first_lost
+    assert not results.second_lost
+    assert results.first_error_message
+    assert not results.second_error_message
+
+
+def test_move_within_soft_limit():
+    first_process = PlayerProcess([sys.executable, "-m", "tests.game.dummy_process", "--move-wait", "0.1"])
+    second_process = PlayerProcess([sys.executable, "-m", "tests.game.dummy_process", "--move-wait", "0.1"])
+
+    game = Game(
+        board_size_x=5,
+        board_size_y=5,
+        first_process=first_process,
+        second_process=second_process,
+        t_process_preparation=1.0,
+        t_init=1.0,
+        t_info_parsing=1.0,
+        t_move=0.01,
+        t_move_soft_limit=3
+    )
+
+    results = game.run()
+
+    first_process.cleanup()
+    second_process.cleanup()
+
+    assert results.first_lost ^ results.second_lost
+    assert not results.first_error_message
+    assert not results.second_error_message
+
+
+def test_move_exceeds_soft_limit():
+    first_process = PlayerProcess([sys.executable, "-m", "tests.game.dummy_process"])
+    second_process = PlayerProcess([sys.executable, "-m", "tests.game.dummy_process", "--move-wait", "2"])
+
+    game = Game(
+        board_size_x=5,
+        board_size_y=5,
+        first_process=first_process,
+        second_process=second_process,
+        t_process_preparation=1.0,
+        t_init=1.0,
+        t_info_parsing=1.0,
+        t_move=1.0,
+        t_move_soft_limit=2
+    )
+
+    results = game.run()
+
+    first_process.cleanup()
+    second_process.cleanup()
+
+    assert not results.first_lost
+    assert results.second_lost
+    assert not results.first_error_message
+    assert results.second_error_message
+
+
 def test_multiple_lines_per_move_last_correct():
     first_process = PlayerProcess([sys.executable, "-m", "tests.game.dummy_process", "--n-lines-per-move", "3", "--override-non-final-lines", "Gibberish\n"])
     second_process = PlayerProcess([sys.executable, "-m", "tests.game.dummy_process"])
@@ -140,7 +224,8 @@ def test_multiple_lines_per_move_last_correct():
         t_process_preparation=1.0,
         t_init=1.0,
         t_info_parsing=1.0,
-        t_move=0.01
+        t_move=0.01,
+        t_move_soft_limit=2
     )
 
     results = game.run()
@@ -165,7 +250,8 @@ def test_multiple_lines_per_move_last_incomplete():
         t_process_preparation=1.0,
         t_init=1.0,
         t_info_parsing=1.0,
-        t_move=0.01
+        t_move=0.01,
+        t_move_soft_limit=2
     )
 
     results = game.run()
@@ -190,7 +276,8 @@ def test_mixed_input_formats():
         t_process_preparation=1.0,
         t_init=1.0,
         t_info_parsing=1.0,
-        t_move=0.01
+        t_move=0.01,
+        t_move_soft_limit=2
     )
 
     results = game.run()
@@ -215,7 +302,8 @@ def test_mixed_output_formats():
         t_process_preparation=1.0,
         t_init=1.0,
         t_info_parsing=1.0,
-        t_move=0.01
+        t_move=0.01,
+        t_move_soft_limit=2
     )
 
     results = game.run()
@@ -240,7 +328,8 @@ def test_all_mixed_formats():
         t_process_preparation=1.0,
         t_init=1.0,
         t_info_parsing=1.0,
-        t_move=0.01
+        t_move=0.01,
+        t_move_soft_limit=2
     )
 
     results = game.run()
