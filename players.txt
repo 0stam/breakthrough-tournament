@@ -1,0 +1,8 @@
+player-one:latest
+player-two:latest
+player-three:latest
+player-four:latest
+player-five:latest
+player-six:latest
+player-seven:latest
+player-eight:latest

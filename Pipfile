@@ -10,11 +10,14 @@ six = "==1.17.0"
 tqdm = "==4.67.3"
 numpy = "*"
 pytest = "*"
+networkx = "*"
 
 [dev-packages]
 
 [scripts]
 single_game = "python -m src.run_single_game"
+tournament = "python -m src.run_tournament"
+tests = "python -m pytest"
 
 [requires]
 python_version = "3.14"
