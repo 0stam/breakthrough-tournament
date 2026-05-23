@@ -37,7 +37,8 @@ def main():
             t_process_preparation=10.0,
             t_init=1.0,
             t_info_parsing=0.5,
-            t_move=1.0
+            t_move=1.0,
+            t_move_soft_limit=3.0
         )
 
         results = game.run()
